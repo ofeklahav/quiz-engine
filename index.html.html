@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Engine</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --bg: #f8fafc;
+            --surface: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --success: #16a34a;
+            --error: #dc2626;
+            --disabled: #cbd5e1;
+            --overlay: rgba(15, 23, 42, 0.6);
+        }
+
+        body {
+            font-family: 'Rubik', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .app-container { width: 100%; max-width: 800px; }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            padding: 32px;
+            margin-bottom: 24px;
+        }
+
+        h1 { font-size: 1.5rem; margin-bottom: 8px; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+        
+        .guide-steps {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin: 24px 0;
+            text-align: center;
+        }
+        .step { font-size: 0.85rem; color: var(--text-muted); }
+        .step i { display: block; font-size: 1.2rem; color: var(--primary); margin-bottom: 8px; }
+
+        .config-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 32px; }
+        .input-field { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+        label { font-size: 0.875rem; font-weight: 600; }
+        input { padding: 12px; border: 1px solid var(--border); border-radius: 8px; font-size: 1rem; outline: none; transition: border 0.2s; box-sizing: border-box; width: 100%; min-width: 0; font-family: 'Rubik', sans-serif; }
+        input:focus { border-color: var(--primary); }
+
+        @media (max-width: 500px) {
+            .card { padding: 20px; }
+            .config-grid { grid-template-columns: 1fr; }
+            .actions { flex-direction: column; }
+            .guide-steps { grid-template-columns: 1fr; gap: 10px; }
+        }
+
+        .actions { display: flex; gap: 12px; border-top: 1px solid var(--border); padding-top: 24px; }
+        .btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            justify-content: center;
+            font-family: 'Rubik', sans-serif;
+        }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover:not(:disabled) { background: var(--primary-hover); }
+        .btn-primary:disabled { background: var(--disabled); cursor: not-allowed; opacity: 0.7; }
+        .btn-outline { background: white; border: 1px solid var(--border); color: var(--text-main); }
+        .btn-outline:hover { background: #f1f5f9; }
+        .btn-ghost { background: transparent; color: var(--text-muted); padding: 8px; }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--overlay);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(2px);
+        }
+        .modal {
+            background: var(--surface);
+            padding: 32px;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 800px;
+            box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2);
+            text-align: center;
+            position: relative;
+        }
+        .mode-options { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 24px; }
+        .mode-card {
+            padding: 20px;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: center;
+        }
+        .mode-card i { font-size: 1.5rem; color: var(--text-muted); transition: color 0.2s; }
+        .mode-card:hover { border-color: var(--primary); background: #f0f7ff; }
+        .mode-card:hover i { color: var(--primary); }
+        .mode-card h3 { margin: 0; font-size: 1.1rem; }
+        .mode-card p { margin: 0; font-size: 0.85rem; color: var(--text-muted); }
+        .mode-card.selected { border-color: var(--primary); background: #eff6ff; }
+        .mode-card.selected i { color: var(--primary); }
+        #mode-modal .modal { max-height: 90vh; overflow-y: auto; }
+
+        .progress-container { margin-bottom: 24px; }
+        .progress-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); }
+        .progress-bar { height: 8px; background: var(--border); border-radius: 4px; overflow: hidden; }
+        .progress-fill { height: 100%; background: var(--primary); transition: width 0.4s ease; }
+
+        #quiz-screen, #results-screen { display: none; }
+        .question-title { font-size: 1.3rem; font-weight: 700; margin-bottom: 24px; line-height: 1.4; }
+        .options-list { display: flex; flex-direction: column; gap: 12px; }
+        .option-item {
+            padding: 18px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .option-item:hover:not(.selected):not(.correct):not(.wrong) { background: #f8fafc; border-color: #cbd5e1; }
+        .option-item.selected { border-color: var(--primary); background: #eff6ff; }
+        .option-item.correct { border-color: var(--success); background: #f0fdf4; color: var(--success); font-weight: 600; }
+        .option-item.wrong { border-color: var(--error); background: #fef2f2; color: var(--error); }
+
+        .explanation { margin-top: 24px; padding: 20px; background: #f1f5f9; border-radius: 10px; font-size: 0.95rem; line-height: 1.5; display: none; border-right: 4px solid var(--primary); }
+        .status-msg { margin-top: 15px; font-size: 0.9rem; font-weight: 500; display: none; }
+        .score-display { font-size: 4rem; font-weight: 900; color: var(--primary); margin: 20px 0; }
+        
+        #info-modal .modal { text-align: right; max-width: 600px; }
+        #info-modal ul { padding-right: 20px; line-height: 1.8; }
+
+        #back-btn {
+            display: none;
+            align-items: center;
+            gap: 6px;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px 12px;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-size: 0.8rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            white-space: nowrap;
+            flex-shrink: 0;
+            font-family: 'Rubik', sans-serif;
+        }
+        #back-btn:hover { color: var(--error); border-color: var(--error); background: #fff5f5; }
+        #back-btn i { font-size: 0.85rem; }
+
+        #confirm-exit-modal .modal { max-width: 400px; }
+        #confirm-exit-modal .modal-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+            justify-content: center;
+        }
+
+        @keyframes overlayFadeIn  { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes overlayFadeOut { from { opacity: 1; } to { opacity: 0; } }
+        @keyframes modalSlideIn   { from { opacity: 0; transform: translateY(-24px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+        @keyframes modalSlideOut  { from { opacity: 1; transform: translateY(0) scale(1); } to { opacity: 0; transform: translateY(-24px) scale(0.97); } }
+
+        .modal-overlay.is-opening { animation: overlayFadeIn 0.22s ease forwards; }
+        .modal-overlay.is-closing { animation: overlayFadeOut 0.22s ease forwards; }
+        .modal-overlay.is-opening .modal { animation: modalSlideIn 0.26s cubic-bezier(0.34,1.3,0.64,1) forwards; }
+        .modal-overlay.is-closing .modal { animation: modalSlideOut 0.2s ease forwards; }
+    </style>
+</head>
+<body>
+
+<div id="mode-modal" class="modal-overlay">
+    <div class="modal" onclick="event.stopPropagation()">
+        <h2 style="margin-bottom: 4px;"><i class="fa-solid fa-graduation-cap"></i> בחר מצב בחינה</h2>
+        <p style="color: var(--text-muted); margin: 0 0 4px;">נטענו <strong id="q-count">0</strong> שאלות בהצלחה.</p>
+        <div class="mode-options" style="margin-top: 16px;">
+            <div class="mode-card exam-card" id="mode-practice-card" onclick="selectExamMode('practice')">
+                <i class="fa-solid fa-book-open"></i>
+                <h3>מצב תרגול</h3>
+                <p>משוב והסבר מיידי אחרי כל שאלה.</p>
+            </div>
+            <div class="mode-card exam-card" id="mode-test-card" onclick="selectExamMode('test')">
+                <i class="fa-solid fa-stopwatch"></i>
+                <h3>מצב מבחן</h3>
+                <p>בלי הסברים בדרך. הכל יוצג רק בסוף.</p>
+            </div>
+        </div>
+        <button class="btn btn-primary" id="start-btn" onclick="startQuiz()" disabled style="width: 100%; margin-top: 24px;">
+            <i class="fa-solid fa-bolt-lightning"></i> התחל בוחן
+        </button>
+        <button class="btn btn-ghost" onclick="closeModal('mode-modal')" style="width: 100%; margin-top: 8px; color: var(--text-muted);">
+            ביטול
+        </button>
+    </div>
+</div>
+
+<div id="info-modal" class="modal-overlay" onclick="closeModal('info-modal')">
+    <div class="modal" onclick="event.stopPropagation()">
+        <h2><i class="fa-solid fa-circle-info"></i> איך זה עובד?</h2>
+        <div style="display: flex; gap: 8px; margin: 20px 0 0; border-bottom: 2px solid var(--border); padding-bottom: 0;">
+            <button id="tab-nblm" onclick="switchInfoTab('nblm')" style="padding: 10px 16px; border: none; background: none; cursor: pointer; font-weight: 600; font-size: 0.9rem; color: var(--primary); border-bottom: 2px solid var(--primary); margin-bottom: -2px; font-family: 'Rubik', sans-serif;">
+                <i class="fa-solid fa-book"></i> NotebookLM
+            </button>
+            <button id="tab-free" onclick="switchInfoTab('free')" style="padding: 10px 16px; border: none; background: none; cursor: pointer; font-weight: 600; font-size: 0.9rem; color: var(--text-muted); border-bottom: 2px solid transparent; margin-bottom: -2px; font-family: 'Rubik', sans-serif;">
+                <i class="fa-solid fa-globe"></i> כל AI אחר
+            </button>
+        </div>
+        <div id="tab-content-nblm" style="text-align: right; margin-top: 20px;">
+            <p>אם החומר שלך שמור ב-<strong>NotebookLM</strong>, המלצתנו היא להשתמש ב-<strong>Gemini</strong> עם תוסף NotebookLM:</p>
+            <ul style="padding-right: 20px; line-height: 1.9;">
+                <li>בצ'אט של Gemini, לחץ על <strong>+ (פלוס)</strong> ובחר בתוסף <strong>NotebookLM</strong>.</li>
+                <li>בחר את המחברת הרלוונטית שלך.</li>
+                <li>לחץ "העתק פרומפט" כאן, הדבק ב-Gemini והעתק את ה-JSON שמוחזר.</li>
+                <li>לחץ "הדבק והתחל" — המבחן יטען מיידית.</li>
+            </ul>
+        </div>
+        <div id="tab-content-free" style="text-align: right; margin-top: 20px; display: none;">
+            <p>אפשר להשתמש בכלי עם <strong>כל AI</strong> — ChatGPT, Claude, Gemini, Copilot ועוד — על כל נושא:</p>
+            <ul style="padding-right: 20px; line-height: 1.9;">
+                <li>בחר <strong>"נושא"</strong> בהגדרות המקורות והקלד את הנושא שמעניין אותך.</li>
+                <li>לחץ "העתק פרומפט" — הפרומפט ייווצר בהתאם לנושא שהזנת.</li>
+                <li>הדבק את הפרומפט בכל AI שאתה משתמש בו.</li>
+                <li>העתק את ה-JSON שמוחזר, לחץ "הדבק והתחל" — וזהו.</li>
+            </ul>
+            <p style="color: var(--text-muted); font-size: 0.85rem; background: #f1f5f9; padding: 12px; border-radius: 8px;">
+                <i class="fa-solid fa-lightbulb" style="color: var(--primary);"></i>
+                טיפ: תוכל לבקש מהAI ללמוד נושא ספציפי, לסכם מסמך שהעלית, או ליצור שאלות על כל תוכן שתרצה.
+            </p>
+        </div>
+        <button class="btn btn-primary" style="width: 100%; margin-top: 20px;" onclick="closeModal('info-modal')">הבנתי, תודה!</button>
+    </div>
+</div>
+
+<div id="confirm-exit-modal" class="modal-overlay">
+    <div class="modal" onclick="event.stopPropagation()">
+        <i class="fa-solid fa-triangle-exclamation" style="font-size: 2rem; color: var(--error); margin-bottom: 12px;"></i>
+        <h2 style="margin-top: 0;">יציאה מהמבחן</h2>
+        <p style="color: var(--text-muted); margin: 0;">האם אתה בטוח שברצונך לצאת מהמבחן? כל ההתקדמות תאבד.</p>
+        <div class="modal-actions">
+            <button class="btn btn-outline" onclick="closeModal('confirm-exit-modal')">ביטול</button>
+            <button class="btn btn-primary" style="background: var(--error);" onclick="location.reload()">כן, צא</button>
+        </div>
+    </div>
+</div>
+
+<div class="app-container">
+    
+    <div id="setup-screen" class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h1><i class="fa-solid fa-sliders"></i> הגדרות בוחן</h1>
+            <button class="btn btn-ghost" onclick="openModal('info-modal')">
+                <i class="fa-solid fa-circle-info"></i>
+            </button>
+        </div>
+
+        <p style="font-size: 0.875rem; font-weight: 600; margin: 24px 0 12px;">אילו מקורות לכלול?</p>
+        <div class="mode-options" style="grid-template-columns: repeat(3, 1fr); margin-top: 0;">
+            <div class="mode-card source-card" id="src-all-card" onclick="selectSource('all')">
+                <i class="fa-solid fa-layer-group"></i>
+                <h3>הכל</h3>
+                <p>כל המקורות הזמינים בספריית NotebookLM.</p>
+            </div>
+            <div class="mode-card source-card" id="src-topic-card" onclick="selectSource('topic')">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <h3>נושא</h3>
+                <p>נושא חופשי - אינטרנט או NotebookLM</p>
+            </div>
+            <div class="mode-card source-card" id="src-range-card" onclick="selectSource('range')">
+                <i class="fa-solid fa-list-ol"></i>
+                <h3>טווח</h3>
+                <p>ממקור ממוספר X עד Y (NotebookLM).</p>
+            </div>
+        </div>
+
+        <div id="source-input-area" style="margin-top: 16px; display: none;">
+            <div id="topic-input" style="display:none;">
+                <input type="text" id="src-topic" placeholder="נושא 1, נושא 2, נושא 3..." style="text-align: right;">
+                <label style="display: flex; align-items: center; gap: 8px; margin-top: 10px; cursor: pointer; font-weight: normal; font-size: 0.85rem; color: var(--text-muted);">
+                    <input type="checkbox" id="use-nblm" style="width: auto; min-width: auto; padding: 0; margin: 0; accent-color: var(--primary);">
+                    השתמש במקורות NotebookLM (במקום חיפוש חופשי באינטרנט)
+                </label>
+            </div>
+            <div id="range-input" style="display:none;">
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <input type="number" id="src-from" value="1" style="max-width: 80px; text-align: center;">
+                    <span style="color: var(--text-muted);">עד</span>
+                    <input type="number" id="src-to" value="10" style="max-width: 80px; text-align: center;">
+                </div>
+            </div>
+        </div>
+
+        <div style="display: flex; align-items: flex-end; gap: 16px; margin-top: 24px; border-top: 1px solid var(--border); padding-top: 24px;">
+            <div class="input-field" style="flex-shrink: 0; width: 140px;">
+                <label>כמות שאלות</label>
+                <input type="number" id="q-amount" value="10">
+            </div>
+            <div style="display: flex; gap: 12px; flex: 1; justify-content: flex-start;">
+                <button class="btn btn-outline" onclick="copyPrompt()">
+                    <i class="fa-regular fa-copy"></i> העתק פרומפט
+                </button>
+                <button class="btn btn-primary" onclick="pasteAndStart()">
+                    <i class="fa-solid fa-bolt-lightning"></i> הדבק והתחל
+                </button>
+            </div>
+        </div>
+        <div id="status" class="status-msg"></div>
+    </div>
+
+    <div id="quiz-screen" class="card">
+        <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 20px;">
+            <button id="back-btn" onclick="exitQuiz()">
+                <i class="fa-solid fa-arrow-right"></i>
+                <span>חזור</span>
+            </button>
+            <div class="progress-container" style="margin-bottom: 0; flex-grow: 1;">
+                <div class="progress-header">
+                    <span id="progress-text"></span>
+                    <span id="percent-text"></span>
+                </div>
+                <div class="progress-bar"><div id="progress-fill" class="progress-fill"></div></div>
+            </div>
+        </div>
+
+        <div id="quiz-content">
+            <div class="question-title" id="q-text"></div>
+            <div class="options-list" id="options-box"></div>
+            <div class="explanation" id="exp-box"></div>
+        </div>
+
+        <div class="actions" style="justify-content: flex-end;">
+            <button class="btn btn-primary" id="next-btn" onclick="handleNext()" disabled>
+                <span>המשך</span>
+                <i class="fa-solid fa-chevron-left"></i>
+            </button>
+        </div>
+    </div>
+
+    <div id="results-screen" class="card" style="text-align: center;">
+        <h1><i class="fa-solid fa-trophy"></i> סיכום הבוחן</h1>
+        <div class="score-display" id="final-score">0/0</div>
+        <p id="final-text"></p>
+        <button class="btn btn-outline" style="margin: 0 auto;" onclick="location.reload()">
+            <i class="fa-solid fa-rotate-right"></i> בוחן חדש
+        </button>
+    </div>
+
+</div>
+
+<script>
+    let state = { data: [], current: 0, score: 0, isAnswered: false, mode: 'practice', sourceType: 'all' };
+    let selectedSource = null;
+    let selectedExamMode = null;
+
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            closeModal('info-modal');
+            closeModal('confirm-exit-modal');
+        }
+    });
+
+    function openModal(id) {
+        const el = document.getElementById(id);
+        el.style.display = 'flex';
+        el.classList.remove('is-closing');
+        el.classList.add('is-opening');
+    }
+
+    function closeModal(id) {
+        const el = document.getElementById(id);
+        el.classList.remove('is-opening');
+        el.classList.add('is-closing');
+        el.addEventListener('animationend', () => {
+            el.style.display = 'none';
+            el.classList.remove('is-closing');
+        }, { once: true });
+    }
+
+    function exitQuiz() { openModal('confirm-exit-modal'); }
+
+    function showStatus(text, isError = false) {
+        const el = document.getElementById('status');
+        el.innerHTML = `<i class="fa-solid ${isError ? 'fa-circle-exclamation' : 'fa-circle-check'}"></i> ${text}`;
+        el.style.display = 'block';
+        el.style.color = isError ? 'var(--error)' : 'var(--success)';
+    }
+
+    function selectSource(type) {
+        selectedSource = type;
+        document.querySelectorAll('.source-card').forEach(c => c.classList.remove('selected'));
+        document.getElementById(`src-${type}-card`).classList.add('selected');
+        const area = document.getElementById('source-input-area');
+        const topicDiv = document.getElementById('topic-input');
+        const rangeDiv = document.getElementById('range-input');
+        if (type === 'all') {
+            area.style.display = 'none';
+            topicDiv.style.display = 'none';
+            rangeDiv.style.display = 'none';
+        } else if (type === 'topic') {
+            area.style.display = 'block';
+            topicDiv.style.display = 'block';
+            rangeDiv.style.display = 'none';
+        } else {
+            area.style.display = 'block';
+            topicDiv.style.display = 'none';
+            rangeDiv.style.display = 'block';
+        }
+    }
+
+    function selectExamMode(mode) {
+        selectedExamMode = mode;
+        document.querySelectorAll('.exam-card').forEach(c => c.classList.remove('selected'));
+        document.getElementById(`mode-${mode}-card`).classList.add('selected');
+        document.getElementById('start-btn').disabled = false;
+    }
+
+    function buildPrompt() {
+        const amt = document.getElementById('q-amount').value;
+        const jsonSchema = `החזר אך ורק JSON במבנה: [{"q":"..","a":["..","..","..",".."],"c":0,"e":".."}] כאשר c הוא אינדקס התשובה הנכונה והסבר ב-e.`;
+        if (selectedSource === 'all') {
+            return `צור ${amt} שאלות אמריקאיות מכל המקורות הזמינים. ${jsonSchema}`;
+        } else if (selectedSource === 'topic') {
+            const topic = document.getElementById('src-topic').value || 'הנושא שנבחר';
+            const useNblm = document.getElementById('use-nblm').checked;
+            const sourceNote = useNblm ? 'בהתבסס על המקורות השמורים במחברת NotebookLM' : 'בהתבסס על ידע כללי ומקורות באינטרנט';
+            return `צור ${amt} שאלות אמריקאיות על הנושא: "${topic}", ${sourceNote}. ${jsonSchema}`;
+        } else {
+            const from = document.getElementById('src-from').value;
+            const to = document.getElementById('src-to').value;
+            return `צור ${amt} שאלות אמריקאיות ממקורות ${from}-${to}. ${jsonSchema}`;
+        }
+    }
+
+    function switchInfoTab(tab) {
+        document.getElementById('tab-content-nblm').style.display = tab === 'nblm' ? 'block' : 'none';
+        document.getElementById('tab-content-free').style.display = tab === 'free' ? 'block' : 'none';
+        const activeColor = 'var(--primary)', mutedColor = 'var(--text-muted)';
+        const activeBorder = '2px solid var(--primary)', noneBorder = '2px solid transparent';
+        document.getElementById('tab-nblm').style.color = tab === 'nblm' ? activeColor : mutedColor;
+        document.getElementById('tab-nblm').style.borderBottom = tab === 'nblm' ? activeBorder : noneBorder;
+        document.getElementById('tab-free').style.color = tab === 'free' ? activeColor : mutedColor;
+        document.getElementById('tab-free').style.borderBottom = tab === 'free' ? activeBorder : noneBorder;
+    }
+
+    function copyToClipboard(text) {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+    }
+
+    function copyPrompt() {
+        if (!selectedSource) { showStatus("אנא בחר סוג מקורות תחילה.", true); return; }
+        copyToClipboard(buildPrompt());
+        showStatus("הפרומפט הועתק! הדבק אותו בכל AI שתרצה.");
+    }
+
+    async function pasteAndStart() {
+        if (!selectedSource) { showStatus("אנא בחר סוג מקורות לפני ההתחלה.", true); return; }
+        try {
+            const text = await navigator.clipboard.readText();
+            const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
+            const parsed = JSON.parse(cleanText);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+                state.data = parsed;
+                document.getElementById('q-count').textContent = parsed.length;
+                selectedExamMode = null;
+                document.querySelectorAll('.exam-card').forEach(c => c.classList.remove('selected'));
+                document.getElementById('start-btn').disabled = true;
+                openModal('mode-modal');
+            } else throw new Error();
+        } catch (e) {
+            showStatus("המידע בלוח אינו תקין. וודא שהעתקת JSON תקני.", true);
+        }
+    }
+
+    function startQuiz() {
+        state.mode = selectedExamMode;
+        state.sourceType = selectedSource;
+        closeModal('mode-modal');
+        document.getElementById('setup-screen').style.display = 'none';
+        document.getElementById('quiz-screen').style.display = 'block';
+        document.getElementById('back-btn').style.display = 'flex';
+        renderQuestion();
+    }
+
+    function renderQuestion() {
+        const q = state.data[state.current];
+        state.isAnswered = false;
+        const total = state.data.length;
+        document.getElementById('progress-text').textContent = `שאלה ${state.current + 1} מתוך ${total}`;
+        const pct = Math.round((state.current / total) * 100);
+        document.getElementById('percent-text').textContent = `${pct}%`;
+        document.getElementById('progress-fill').style.width = `${pct}%`;
+        document.getElementById('q-text').textContent = q.q;
+        document.getElementById('exp-box').style.display = 'none';
+        const nextBtn = document.getElementById('next-btn');
+        nextBtn.disabled = true;
+        nextBtn.querySelector('span').textContent = (state.current === total - 1) ? "סיים בוחן" : "המשך";
+        const box = document.getElementById('options-box');
+        box.innerHTML = '';
+        q.a.forEach((opt, i) => {
+            const div = document.createElement('div');
+            div.className = 'option-item';
+            div.innerHTML = `<i class="fa-regular fa-circle"></i> <span>${opt}</span>`;
+            div.onclick = () => selectOption(i);
+            box.appendChild(div);
+        });
+    }
+
+    function selectOption(idx) {
+        if (state.isAnswered) return;
+        state.isAnswered = true;
+        const q = state.data[state.current];
+        const options = document.querySelectorAll('.option-item');
+        document.getElementById('next-btn').disabled = false;
+        if (state.mode === 'practice') {
+            options.forEach((opt, i) => {
+                const icon = opt.querySelector('i');
+                if (i === q.c) {
+                    opt.classList.add('correct');
+                    icon.className = "fa-solid fa-circle-check";
+                    if (i === idx) state.score++;
+                } else if (i === idx) {
+                    opt.classList.add('wrong');
+                    icon.className = "fa-solid fa-circle-xmark";
+                }
+            });
+            const exp = document.getElementById('exp-box');
+            exp.innerHTML = `<strong>הסבר:</strong><br>${q.e}`;
+            exp.style.display = 'block';
+        } else {
+            options[idx].classList.add('selected');
+            options[idx].querySelector('i').className = "fa-solid fa-circle-dot";
+            if (idx === q.c) state.score++;
+        }
+    }
+
+    function handleNext() {
+        if (state.current < state.data.length - 1) {
+            state.current++;
+            renderQuestion();
+        } else {
+            showResults();
+        }
+    }
+
+    function showResults() {
+        document.getElementById('quiz-screen').style.display = 'none';
+        document.getElementById('back-btn').style.display = 'none';
+        document.getElementById('results-screen').style.display = 'block';
+        document.getElementById('final-score').textContent = `${state.score} / ${state.data.length}`;
+        document.getElementById('final-text').textContent = (state.score / state.data.length >= 0.8) ? "ביצועים מעולים!" : "עבודה טובה, מומלץ לעבור שוב על החומר.";
+    }
+</script>
+
+</body>
+</html>
