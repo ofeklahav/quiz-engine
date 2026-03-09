@@ -170,8 +170,6 @@
 
         .explanation { margin-top: 24px; padding: 20px; background: #f1f5f9; border-radius: 10px; font-size: 0.95rem; line-height: 1.5; display: none; border-right: 4px solid var(--primary); }
         .status-msg { margin-top: 15px; font-size: 0.9rem; font-weight: 500; display: none; }
-        .score-display { font-size: 4rem; font-weight: 900; color: var(--primary); margin: 20px 0; }
-        
         #info-modal .modal { text-align: right; max-width: 600px; }
         #info-modal ul { padding-right: 20px; line-height: 1.8; }
 
@@ -265,6 +263,9 @@
         #results-list.hide-correct .result-q-card.is-correct { display: none; }
         #results-list.hide-wrong   .result-q-card.is-wrong   { display: none; }
         .no-results-msg { text-align: center; padding: 24px; color: var(--text-muted); font-size: 0.9rem; display: none; }
+        @media (max-width: 500px) {
+            .results-header-actions .btn { padding: 8px 12px; font-size: 0.8rem; gap: 6px; }
+        }
 
         .btn-hint { background: #fffbeb; border: 1px solid #fcd34d; color: #92400e; padding: 8px 16px; border-radius: 8px; font-size: 0.875rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s; font-family: 'Rubik', sans-serif; }
         .btn-hint:hover { background: #fef3c7; border-color: #f59e0b; }
@@ -459,7 +460,7 @@
     <div id="results-screen" class="card" style="display: none;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
             <h1 style="margin-bottom: 0;"><i class="fa-solid fa-trophy"></i> סיכום הבוחן</h1>
-            <div style="display: flex; gap: 8px;">
+            <div class="results-header-actions" style="display: flex; gap: 8px;">
                 <button class="btn btn-outline" onclick="location.reload()">
                     <i class="fa-solid fa-house"></i> מסך הבית
                 </button>
@@ -491,7 +492,7 @@
 </div>
 
 <script>
-    let state = { data: [], current: 0, score: 0, isAnswered: false, mode: 'practice', sourceType: 'all', answers: [] };
+    let state = { data: [], current: 0, isAnswered: false, mode: 'practice', sourceType: 'all', answers: [] };
     let selectedSource = null;
     let selectedExamMode = null;
 
@@ -639,7 +640,6 @@
         state.mode = selectedExamMode;
         state.sourceType = selectedSource;
         state.current = 0;
-        state.score = 0;
         state.answers = new Array(state.data.length).fill(null);
         closeModal('mode-modal');
         document.getElementById('setup-screen').style.display = 'none';
@@ -683,13 +683,12 @@
 
     function selectOption(idx) {
         if (state.isAnswered) return;
-        state.isAnswered = true;
         const q = state.data[state.current];
-        state.answers[state.current] = idx;
         const options = document.querySelectorAll('.option-item');
-        document.getElementById('next-btn').disabled = false;
-        if (idx === q.c) state.score++;
         if (state.mode === 'practice') {
+            state.isAnswered = true;
+            state.answers[state.current] = idx;
+            document.getElementById('next-btn').disabled = false;
             options.forEach((opt, i) => {
                 const icon = opt.querySelector('i');
                 if (i === q.c) {
@@ -705,6 +704,12 @@
             exp.innerHTML = `<strong>הסבר:</strong><br>${q.e}`;
             exp.style.display = 'block';
         } else {
+            state.answers[state.current] = idx;
+            document.getElementById('next-btn').disabled = false;
+            options.forEach((opt, i) => {
+                opt.classList.remove('selected');
+                opt.querySelector('i').className = "fa-regular fa-circle";
+            });
             options[idx].classList.add('selected');
             options[idx].querySelector('i').className = "fa-solid fa-circle-dot";
         }
@@ -733,7 +738,7 @@
         document.getElementById('results-screen').style.display = 'block';
 
         const total = state.data.length;
-        const correct = state.score;
+        const correct = state.data.filter((q, i) => state.answers[i] === q.c).length;
         const wrong = total - correct;
         const pct = Math.round((correct / total) * 100);
 
@@ -781,7 +786,6 @@
         document.getElementById('quiz-screen').style.display = 'block';
         document.getElementById('back-btn').style.display = 'flex';
         state.current = 0;
-        state.score = 0;
         state.answers = new Array(state.data.length).fill(null);
         renderQuestion();
     }
@@ -794,7 +798,6 @@
         list.classList.remove('hide-correct', 'hide-wrong');
         if (filter === 'correct') list.classList.add('hide-wrong');
         if (filter === 'wrong')   list.classList.add('hide-correct');
-        const visibleCount = list.querySelectorAll('.result-q-card:not([style*="none"])').length;
         const cards = filter === 'correct'
             ? list.querySelectorAll('.result-q-card.is-correct').length
             : filter === 'wrong'
@@ -803,9 +806,8 @@
         document.getElementById('no-results-msg').style.display = cards === 0 ? 'block' : 'none';
     }
 
-    // ── Cache helpers ──────────────────────────────────────────────
     const CACHE_KEY = 'quiz_recent_exams';
-    const CACHE_TTL = 30 * 24 * 60 * 60 * 1000; // 30 days
+    const CACHE_TTL = 30 * 24 * 60 * 60 * 1000;
     const CACHE_MAX = 8;
 
     function loadCache() {
