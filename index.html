@@ -22,6 +22,15 @@
             --overlay: rgba(15, 23, 42, 0.6);
         }
 
+        html {
+            scrollbar-gutter: stable;
+        }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
         body {
             font-family: 'Rubik', -apple-system, BlinkMacSystemFont, sans-serif;
             background-color: var(--bg);
@@ -73,7 +82,7 @@
             .bottom-actions-row .btn { flex: 1; }
         }
 
-        .actions { display: flex; gap: 12px; border-top: 1px solid var(--border); padding-top: 24px; }
+        .actions { display: flex; gap: 12px; padding-top: 24px; }
         .btn {
             padding: 12px 24px;
             border-radius: 8px;
@@ -128,8 +137,8 @@
             align-items: center;
         }
         .mode-card i { font-size: 1.5rem; color: var(--text-muted); transition: color 0.2s; }
-        .mode-card:hover { border-color: var(--primary); background: #f0f7ff; }
-        .mode-card:hover i { color: var(--primary); }
+        .mode-card:hover:not(.selected) { border-color: #94a3b8; background: #f8fafc; }
+        .mode-card:hover:not(.selected) i { color: #64748b; }
         .mode-card h3 { margin: 0; font-size: 1.1rem; }
         .mode-card p { margin: 0; font-size: 0.85rem; color: var(--text-muted); }
         .mode-card.selected { border-color: var(--primary); background: #eff6ff; }
@@ -203,11 +212,69 @@
         .modal-overlay.is-closing { animation: overlayFadeOut 0.22s ease forwards; }
         .modal-overlay.is-opening .modal { animation: modalSlideIn 0.26s cubic-bezier(0.34,1.3,0.64,1) forwards; }
         .modal-overlay.is-closing .modal { animation: modalSlideOut 0.2s ease forwards; }
+
+        .recent-exams-section { margin-top: 24px; border-top: 1px solid var(--border); padding-top: 20px; }
+        .recent-exams-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .recent-exam-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: 0.2s;
+            margin-bottom: 8px;
+        }
+        .recent-exam-item:last-child { margin-bottom: 0; }
+        .recent-exam-item:hover { border-color: #94a3b8; background: #f8fafc; }
+        .recent-exam-icon { color: var(--primary); font-size: 1.1rem; flex-shrink: 0; }
+        .recent-exam-info { flex: 1; min-width: 0; text-align: right; }
+        .recent-exam-title { font-weight: 600; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .recent-exam-meta { font-size: 0.8rem; color: var(--text-muted); margin-top: 2px; }
+        .btn-delete-exam { background: transparent; border: none; color: var(--text-muted); cursor: pointer; padding: 4px 8px; border-radius: 6px; transition: 0.2s; font-size: 0.9rem; flex-shrink: 0; }
+        .btn-delete-exam:hover { color: var(--error); background: #fff5f5; }
+
+        .results-summary { display: flex; align-items: center; justify-content: center; gap: 32px; padding: 24px 0; border-bottom: 1px solid var(--border); margin-bottom: 24px; flex-wrap: wrap; }
+        .score-circle { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 110px; height: 110px; border-radius: 50%; border: 5px solid; }
+        .score-circle .sc-num { font-size: 1.8rem; font-weight: 900; line-height: 1.1; }
+        .score-circle .sc-pct { font-size: 0.8rem; font-weight: 600; }
+        .score-circle.great { border-color: var(--success); color: var(--success); }
+        .score-circle.ok    { border-color: #d97706; color: #d97706; }
+        .score-circle.poor  { border-color: var(--error); color: var(--error); }
+        .score-stats { display: flex; flex-direction: column; gap: 8px; }
+        .stat-row { display: flex; align-items: center; gap: 10px; font-size: 0.9rem; font-weight: 600; }
+        .stat-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+        .results-filters { display: flex; gap: 8px; margin-bottom: 20px; }
+        .filter-btn { padding: 6px 16px; border-radius: 20px; border: 1px solid var(--border); background: white; cursor: pointer; font-size: 0.85rem; font-weight: 600; color: var(--text-muted); transition: 0.2s; font-family: 'Rubik', sans-serif; }
+        .filter-btn.active { background: var(--primary); border-color: var(--primary); color: white; }
+        .filter-btn:hover:not(.active) { background: #f1f5f9; }
+        .result-q-card { border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 12px; border-right: 4px solid var(--border); }
+        .result-q-card:last-child { margin-bottom: 0; }
+        .result-q-card.is-correct { border-right-color: var(--success); }
+        .result-q-card.is-wrong   { border-right-color: var(--error); }
+        .result-q-header { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 14px; }
+        .result-q-num { font-size: 0.75rem; font-weight: 700; color: var(--text-muted); flex-shrink: 0; white-space: nowrap; margin-top: 4px; }
+        .result-q-text { font-weight: 600; font-size: 0.975rem; line-height: 1.45; flex: 1; }
+        .result-answers { display: flex; flex-direction: column; gap: 7px; margin-bottom: 14px; }
+        .result-answer { padding: 9px 14px; border-radius: 8px; border: 1px solid var(--border); font-size: 0.875rem; display: flex; align-items: center; gap: 10px; color: var(--text-muted); }
+        .result-answer.correct { border-color: var(--success); background: #f0fdf4; color: var(--success); font-weight: 600; }
+        .result-answer.wrong   { border-color: var(--error);   background: #fef2f2; color: var(--error); }
+        .result-explanation { font-size: 0.85rem; color: var(--text-muted); background: #f8fafc; border-radius: 8px; padding: 12px 14px; line-height: 1.65; border-right: 3px solid var(--primary); }
+        .result-explanation strong { color: var(--text-main); }
+        #results-list.hide-correct .result-q-card.is-correct { display: none; }
+        #results-list.hide-wrong   .result-q-card.is-wrong   { display: none; }
+        .no-results-msg { text-align: center; padding: 24px; color: var(--text-muted); font-size: 0.9rem; display: none; }
+
+        .btn-hint { background: #fffbeb; border: 1px solid #fcd34d; color: #92400e; padding: 8px 16px; border-radius: 8px; font-size: 0.875rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: 0.2s; font-family: 'Rubik', sans-serif; }
+        .btn-hint:hover { background: #fef3c7; border-color: #f59e0b; }
+        .hint-box { margin-top: 12px; padding: 12px 14px; background: #fffbeb; border-radius: 8px; font-size: 0.875rem; color: #78350f; line-height: 1.65; border-right: 3px solid #f59e0b; display: none; }
+        .hint-box strong { color: #92400e; }
     </style>
 </head>
 <body>
 
-<div id="mode-modal" class="modal-overlay">
+<div id="mode-modal" class="modal-overlay" onclick="closeModal('mode-modal')">
     <div class="modal" onclick="event.stopPropagation()">
         <h2 style="margin-bottom: 4px;"><i class="fa-solid fa-graduation-cap"></i> בחר מצב בחינה</h2>
         <p style="color: var(--text-muted); margin: 0 0 4px;">נטענו <strong id="q-count">0</strong> שאלות בהצלחה.</p>
@@ -306,7 +373,7 @@
             <div class="mode-card source-card" id="src-range-card" onclick="selectSource('range')">
                 <i class="fa-solid fa-list-ol"></i>
                 <h3>טווח</h3>
-                <p>ממקור ממוספר X עד Y (NotebookLM).</p>
+                <p>ממקורות NotebookLM ממוספרים</p>
             </div>
         </div>
 
@@ -342,6 +409,16 @@
             </div>
         </div>
         <div id="status" class="status-msg"></div>
+
+        <div id="recent-exams-section" class="recent-exams-section" style="display: none;">
+            <div class="recent-exams-header">
+                <p style="font-size: 0.875rem; font-weight: 600; margin: 0;"><i class="fa-solid fa-clock-rotate-left" style="color: var(--primary);"></i> מבחנים אחרונים</p>
+                <button class="btn-delete-exam" style="font-size: 0.8rem; padding: 4px 10px;" onclick="clearAllCachedExams()">
+                    <i class="fa-solid fa-trash"></i> נקה הכל
+                </button>
+            </div>
+            <div id="recent-exams-list"></div>
+        </div>
     </div>
 
     <div id="quiz-screen" class="card">
@@ -365,7 +442,13 @@
             <div class="explanation" id="exp-box"></div>
         </div>
 
-        <div class="actions" style="justify-content: flex-end;">
+        <div class="actions" style="justify-content: flex-end; align-items: center;">
+            <div id="hint-area" style="display: none; flex: 1; align-items: center; gap: 10px;">
+                <button class="btn-hint" id="hint-btn" onclick="showHint()">
+                    <i class="fa-solid fa-lightbulb"></i> רמז
+                </button>
+                <div class="hint-box" id="hint-box" style="margin-top: 0; flex: 1;"></div>
+            </div>
             <button class="btn btn-primary" id="next-btn" onclick="handleNext()" disabled>
                 <span>המשך</span>
                 <i class="fa-solid fa-chevron-left"></i>
@@ -373,24 +456,48 @@
         </div>
     </div>
 
-    <div id="results-screen" class="card" style="text-align: center;">
-        <h1><i class="fa-solid fa-trophy"></i> סיכום הבוחן</h1>
-        <div class="score-display" id="final-score">0/0</div>
-        <p id="final-text"></p>
-        <button class="btn btn-outline" style="margin: 0 auto;" onclick="location.reload()">
-            <i class="fa-solid fa-rotate-right"></i> בוחן חדש
-        </button>
+    <div id="results-screen" class="card" style="display: none;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+            <h1 style="margin-bottom: 0;"><i class="fa-solid fa-trophy"></i> סיכום הבוחן</h1>
+            <div style="display: flex; gap: 8px;">
+                <button class="btn btn-outline" onclick="location.reload()">
+                    <i class="fa-solid fa-house"></i> מסך הבית
+                </button>
+                <button class="btn btn-primary" onclick="retryQuiz()">
+                    <i class="fa-solid fa-rotate-right"></i> נסה שוב
+                </button>
+            </div>
+        </div>
+        <div class="results-summary">
+            <div id="score-circle" class="score-circle">
+                <span class="sc-num" id="sc-fraction"></span>
+                <span class="sc-pct" id="sc-pct"></span>
+            </div>
+            <div class="score-stats">
+                <div class="stat-row"><div class="stat-dot" style="background: var(--success);"></div><span id="stat-correct"></span></div>
+                <div class="stat-row"><div class="stat-dot" style="background: var(--error);"></div><span id="stat-wrong"></span></div>
+                <div style="margin-top: 4px; font-size: 0.9rem; color: var(--text-muted);" id="stat-msg"></div>
+            </div>
+        </div>
+        <div class="results-filters">
+            <button class="filter-btn active" id="filter-all"     onclick="setFilter('all')">הכל</button>
+            <button class="filter-btn"        id="filter-correct" onclick="setFilter('correct')"><i class="fa-solid fa-check"></i> נכון</button>
+            <button class="filter-btn"        id="filter-wrong"   onclick="setFilter('wrong')"><i class="fa-solid fa-xmark"></i> שגוי</button>
+        </div>
+        <div id="results-list"></div>
+        <p class="no-results-msg" id="no-results-msg">אין שאלות להצגה בסינון זה.</p>
     </div>
 
 </div>
 
 <script>
-    let state = { data: [], current: 0, score: 0, isAnswered: false, mode: 'practice', sourceType: 'all' };
+    let state = { data: [], current: 0, score: 0, isAnswered: false, mode: 'practice', sourceType: 'all', answers: [] };
     let selectedSource = null;
     let selectedExamMode = null;
 
     window.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
+            closeModal('mode-modal');
             closeModal('info-modal');
             closeModal('confirm-exit-modal');
         }
@@ -453,7 +560,7 @@
 
     function buildPrompt() {
         const amt = document.getElementById('q-amount').value;
-        const jsonSchema = `החזר אך ורק JSON במבנה: [{"q":"..","a":["..","..","..",".."],"c":0,"e":".."}] כאשר c הוא אינדקס התשובה הנכונה והסבר ב-e.`;
+        const jsonSchema = `החזר אך ורק JSON במבנה: {"title":"כותרת קצרה לבוחן בעברית","questions":[{"q":"..","a":["..","..","..",".."],"c":0,"e":"..","h":".."}]} כאשר c הוא אינדקס התשובה הנכונה, e הוא הסבר מפורט לאחר התשובה, ו-h הוא רמז קצר שמכוון לכיוון הנכון מבלי לחשוף את התשובה ישירות. הכותרת מתארת את הנושא בקצרה.`;
         if (selectedSource === 'all') {
             return `צור ${amt} שאלות אמריקאיות מכל המקורות הזמינים. ${jsonSchema}`;
         } else if (selectedSource === 'topic') {
@@ -497,27 +604,43 @@
     }
 
     async function pasteAndStart() {
-        if (!selectedSource) { showStatus("אנא בחר סוג מקורות לפני ההתחלה.", true); return; }
         try {
             const text = await navigator.clipboard.readText();
             const cleanText = text.replace(/```json/g, '').replace(/```/g, '').trim();
             const parsed = JSON.parse(cleanText);
+            let questions, title;
             if (Array.isArray(parsed) && parsed.length > 0) {
-                state.data = parsed;
-                document.getElementById('q-count').textContent = parsed.length;
-                selectedExamMode = null;
-                document.querySelectorAll('.exam-card').forEach(c => c.classList.remove('selected'));
-                document.getElementById('start-btn').disabled = true;
-                openModal('mode-modal');
-            } else throw new Error();
+                questions = parsed;
+                title = null;
+            } else if (parsed && Array.isArray(parsed.questions) && parsed.questions.length > 0) {
+                questions = parsed.questions;
+                title = parsed.title || null;
+            } else {
+                throw new Error();
+            }
+            state.data = questions;
+            state.examTitle = title;
+            saveToCache(title, questions);
+            openModeModal(title, questions.length);
         } catch (e) {
             showStatus("המידע בלוח אינו תקין. וודא שהעתקת JSON תקני.", true);
         }
     }
 
+    function openModeModal(title, count) {
+        document.getElementById('q-count').textContent = count;
+        selectedExamMode = null;
+        document.querySelectorAll('.exam-card').forEach(c => c.classList.remove('selected'));
+        document.getElementById('start-btn').disabled = true;
+        openModal('mode-modal');
+    }
+
     function startQuiz() {
         state.mode = selectedExamMode;
         state.sourceType = selectedSource;
+        state.current = 0;
+        state.score = 0;
+        state.answers = new Array(state.data.length).fill(null);
         closeModal('mode-modal');
         document.getElementById('setup-screen').style.display = 'none';
         document.getElementById('quiz-screen').style.display = 'block';
@@ -535,6 +658,15 @@
         document.getElementById('progress-fill').style.width = `${pct}%`;
         document.getElementById('q-text').textContent = q.q;
         document.getElementById('exp-box').style.display = 'none';
+        const hintArea = document.getElementById('hint-area');
+        const hintBox = document.getElementById('hint-box');
+        hintBox.style.display = 'none';
+        if (state.mode === 'practice' && q.h) {
+            hintArea.style.display = 'flex';
+            document.getElementById('hint-btn').style.display = 'inline-flex';
+        } else {
+            hintArea.style.display = 'none';
+        }
         const nextBtn = document.getElementById('next-btn');
         nextBtn.disabled = true;
         nextBtn.querySelector('span').textContent = (state.current === total - 1) ? "סיים בוחן" : "המשך";
@@ -553,28 +685,37 @@
         if (state.isAnswered) return;
         state.isAnswered = true;
         const q = state.data[state.current];
+        state.answers[state.current] = idx;
         const options = document.querySelectorAll('.option-item');
         document.getElementById('next-btn').disabled = false;
+        if (idx === q.c) state.score++;
         if (state.mode === 'practice') {
             options.forEach((opt, i) => {
                 const icon = opt.querySelector('i');
                 if (i === q.c) {
                     opt.classList.add('correct');
                     icon.className = "fa-solid fa-circle-check";
-                    if (i === idx) state.score++;
                 } else if (i === idx) {
                     opt.classList.add('wrong');
                     icon.className = "fa-solid fa-circle-xmark";
                 }
             });
+            document.getElementById('hint-area').style.display = 'none';
             const exp = document.getElementById('exp-box');
             exp.innerHTML = `<strong>הסבר:</strong><br>${q.e}`;
             exp.style.display = 'block';
         } else {
             options[idx].classList.add('selected');
             options[idx].querySelector('i').className = "fa-solid fa-circle-dot";
-            if (idx === q.c) state.score++;
         }
+    }
+
+    function showHint() {
+        const q = state.data[state.current];
+        const hintBox = document.getElementById('hint-box');
+        hintBox.innerHTML = `<strong>רמז:</strong> ${q.h}`;
+        hintBox.style.display = 'block';
+        document.getElementById('hint-btn').style.display = 'none';
     }
 
     function handleNext() {
@@ -590,9 +731,149 @@
         document.getElementById('quiz-screen').style.display = 'none';
         document.getElementById('back-btn').style.display = 'none';
         document.getElementById('results-screen').style.display = 'block';
-        document.getElementById('final-score').textContent = `${state.score} / ${state.data.length}`;
-        document.getElementById('final-text').textContent = (state.score / state.data.length >= 0.8) ? "ביצועים מעולים!" : "עבודה טובה, מומלץ לעבור שוב על החומר.";
+
+        const total = state.data.length;
+        const correct = state.score;
+        const wrong = total - correct;
+        const pct = Math.round((correct / total) * 100);
+
+        const circle = document.getElementById('score-circle');
+        circle.className = 'score-circle ' + (pct >= 80 ? 'great' : pct >= 50 ? 'ok' : 'poor');
+        document.getElementById('sc-fraction').textContent = `${correct}/${total}`;
+        document.getElementById('sc-pct').textContent = `${pct}%`;
+        document.getElementById('stat-correct').textContent = `${correct} תשובות נכונות`;
+        document.getElementById('stat-wrong').textContent   = `${wrong} תשובות שגויות`;
+        document.getElementById('stat-msg').textContent     = pct >= 80 ? 'ביצועים מעולים!' : pct >= 50 ? 'טוב, אך כדאי לחזור על החומר.' : 'מומלץ לעבור שוב על החומר.';
+
+        const list = document.getElementById('results-list');
+        list.innerHTML = '';
+        state.data.forEach((q, i) => {
+            const chosen = state.answers[i];
+            const isCorrect = chosen === q.c;
+            const card = document.createElement('div');
+            card.className = `result-q-card ${isCorrect ? 'is-correct' : 'is-wrong'}`;
+            const answersHtml = q.a.map((opt, ai) => {
+                let cls = '';
+                if (ai === q.c) cls = 'correct';
+                else if (ai === chosen && !isCorrect) cls = 'wrong';
+                const icon = ai === q.c
+                    ? '<i class="fa-solid fa-circle-check"></i>'
+                    : ai === chosen && !isCorrect
+                        ? '<i class="fa-solid fa-circle-xmark"></i>'
+                        : '<i class="fa-regular fa-circle"></i>';
+                return `<div class="result-answer ${cls}">${icon} ${opt}</div>`;
+            }).join('');
+            card.innerHTML = `
+                <div class="result-q-header">
+                    <span class="result-q-num">שאלה ${i + 1}</span>
+                    <span class="result-q-text">${q.q}</span>
+                </div>
+                <div class="result-answers">${answersHtml}</div>
+                <div class="result-explanation"><strong>הסבר:</strong> ${q.e}</div>`;
+            list.appendChild(card);
+        });
+
+        setFilter('all');
     }
+
+    function retryQuiz() {
+        document.getElementById('results-screen').style.display = 'none';
+        document.getElementById('quiz-screen').style.display = 'block';
+        document.getElementById('back-btn').style.display = 'flex';
+        state.current = 0;
+        state.score = 0;
+        state.answers = new Array(state.data.length).fill(null);
+        renderQuestion();
+    }
+
+    function setFilter(filter) {
+        ['all','correct','wrong'].forEach(f => {
+            document.getElementById(`filter-${f}`).classList.toggle('active', f === filter);
+        });
+        const list = document.getElementById('results-list');
+        list.classList.remove('hide-correct', 'hide-wrong');
+        if (filter === 'correct') list.classList.add('hide-wrong');
+        if (filter === 'wrong')   list.classList.add('hide-correct');
+        const visibleCount = list.querySelectorAll('.result-q-card:not([style*="none"])').length;
+        const cards = filter === 'correct'
+            ? list.querySelectorAll('.result-q-card.is-correct').length
+            : filter === 'wrong'
+                ? list.querySelectorAll('.result-q-card.is-wrong').length
+                : list.querySelectorAll('.result-q-card').length;
+        document.getElementById('no-results-msg').style.display = cards === 0 ? 'block' : 'none';
+    }
+
+    // ── Cache helpers ──────────────────────────────────────────────
+    const CACHE_KEY = 'quiz_recent_exams';
+    const CACHE_TTL = 30 * 24 * 60 * 60 * 1000; // 30 days
+    const CACHE_MAX = 8;
+
+    function loadCache() {
+        try {
+            const raw = localStorage.getItem(CACHE_KEY);
+            if (!raw) return [];
+            const items = JSON.parse(raw);
+            const cutoff = Date.now() - CACHE_TTL;
+            return items.filter(e => e.savedAt > cutoff);
+        } catch { return []; }
+    }
+
+    function saveToCache(title, questions) {
+        const items = loadCache();
+        const entry = { id: Date.now(), title: title || 'בוחן ללא כותרת', data: questions, savedAt: Date.now(), questionCount: questions.length };
+        items.unshift(entry);
+        const trimmed = items.slice(0, CACHE_MAX);
+        localStorage.setItem(CACHE_KEY, JSON.stringify(trimmed));
+        renderRecentExams();
+    }
+
+    function deleteCachedExam(id, e) {
+        e.stopPropagation();
+        const items = loadCache().filter(ex => ex.id !== id);
+        localStorage.setItem(CACHE_KEY, JSON.stringify(items));
+        renderRecentExams();
+    }
+
+    function clearAllCachedExams() {
+        localStorage.removeItem(CACHE_KEY);
+        renderRecentExams();
+    }
+
+    function loadCachedExam(id) {
+        const exam = loadCache().find(e => e.id === id);
+        if (!exam) return;
+        state.data = exam.data;
+        state.examTitle = exam.title;
+        openModeModal(exam.title, exam.data.length);
+    }
+
+    function renderRecentExams() {
+        const items = loadCache();
+        const section = document.getElementById('recent-exams-section');
+        const list = document.getElementById('recent-exams-list');
+        if (items.length === 0) { section.style.display = 'none'; return; }
+        section.style.display = 'block';
+        list.innerHTML = '';
+        items.forEach(exam => {
+            const date = new Date(exam.savedAt);
+            const dateStr = date.toLocaleDateString('he-IL', { day: 'numeric', month: 'numeric', year: '2-digit' });
+            const div = document.createElement('div');
+            div.className = 'recent-exam-item';
+            div.onclick = () => loadCachedExam(exam.id);
+            div.innerHTML = `
+                <i class="fa-solid fa-file-lines recent-exam-icon"></i>
+                <div class="recent-exam-info">
+                    <div class="recent-exam-title">${exam.title}</div>
+                    <div class="recent-exam-meta">${exam.questionCount} שאלות · ${dateStr}</div>
+                </div>
+                <button class="btn-delete-exam" title="מחק" onclick="deleteCachedExam(${exam.id}, event)">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>`;
+            list.appendChild(div);
+        });
+    }
+
+    renderRecentExams();
 </script>
 
 </body>
